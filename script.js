@@ -109,3 +109,35 @@ function activationSigmoid(z) {
 //    return 2 * (y - yPrime);
 // }
 
+
+
+// Gradient descent
+// w = w - alpha * dL/dw
+// w = weight
+// alpha = learning rate
+// dL/dw = derivative of loss function with respect to weight
+
+
+// alpha = 0.0001
+
+// theta = np.random.random_sample((14,1))
+// num_iters = 1000
+
+// # Perform gradient descent
+// for i in range(num_iters):
+//     # Compute the predicted values for the current parameters
+//     y_pred = X_train @ theta
+    
+//     # Compute the errors between predicted and target values
+//     errors = y_pred - y_train
+    
+//     # Compute the gradients of the cost function with respect to theta
+//     gradients = np.transpose(X_train) @ errors
+    
+//     # Update the parameters using the gradients and learning rate
+//     theta = theta - alpha * gradients
+    
+//     # Print the cost function every 100 iterations
+//     if i % 100 == 0:
+//         cost = np.mean(errors ** 2)
+//         print(f"Iteration {i}: Cost = {cost}")
