@@ -219,7 +219,4 @@ class Matrix {
    }
 }
 
-
-const nn = new NeuralNetwork(3, 3, 1);
-const tnn = nn.train([0.5, 0.6, 0.7], [0.5]);
-console.log(tnn);
+export default NeuralNetwork;

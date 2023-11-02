@@ -5,23 +5,49 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Document</title>
-   <script src="./script.js" defer></script>
-   <script src="./simple_NN.js" defer></script>
+   <!-- <script src="./script.js" defer></script> -->
+   <!-- <script src="./simple_NN.js" defer></script> -->
+   <script type="module" src="./main.js" defer></script>
 </head>
 
 <body>
-   <input id="input" type="number" placeholder="Input for Training">
-   <!-- <input id="bias" type="number" placeholder="b for Training"> -->
-   <button id="calc">Try it</button>
-   <div id="output">#####</div>
+   <div class="cam">
+      <label for="cameraX">Kamera X</label>
+      <input value="0" id="cameraX" name="cameraX" type="range" min="0" max="25" step="0.5">
+      <label for="cameraY">Kamera Y</label>
+      <input value="0" id="cameraY" name="cameraY" type="range" min="0" max="25" step="0.5">
+      <label for="cameraZ">Kamera Z</label>
+      <input value="5" id="cameraZ" name="cameraZ" type="range" min="5" max="25" step="0.5">
+   </div>
+   <div class="input">
+      <label for="inputInput">Input-layer</label>
+      <input id="inputInput" value="1" name="inputInput" type="number">
+      <label for="inputHidden">Hidden-layer</label>
+      <input id="inputHidden" value="1" name="inputHidden" type="number">
+      <label for="inputOutput">Output-layer</label>
+      <input id="inputOutput" value="1" name="inputOutput" type="number">
+      <input id="generateNN" type="button" value="NN Erstellen">
+   </div>
 </body>
 
 <style>
-   body {
-      background-color: black;
+   .cam,
+   .input {
       color: white;
-      font-family: monospace;
-      font-size: 35px;
+      position: absolute;
+   }
+
+   .cam {
+      top: 45px;
+   }
+
+   .input {
+      top: 10px;
+   }
+
+   body {
+      margin: 0;
+      padding: 0;
    }
 </style>
 
