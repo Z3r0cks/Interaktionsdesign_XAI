@@ -146,9 +146,11 @@ class Matrix {
       return result;
    }
 
-   multiply(n) {
+   static multiply(n) {
       if (n instanceof Matrix) {
          // Matrix multiplication
+         console.log(this);
+         console.log(n.rows);
          if (this.cols !== n.rows) {
             console.error('Columns of A must match rows of B');
             return undefined;

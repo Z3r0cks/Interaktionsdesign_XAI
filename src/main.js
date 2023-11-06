@@ -64,7 +64,6 @@ function onMouseMove(event) {
    // Raycasting for tooltips
    raycaster.setFromCamera(mouse, camera);
    const intersects = raycaster.intersectObjects(scene.children);
-   console.log(scene);
 
    if (intersects.length > 0) {
       const closestIntersectedObject = intersects[0].object;
@@ -101,6 +100,16 @@ function generateVisualNN(input, hidden, output) {
    outputNodes = [];
    NN = new NeuralNetwork(input, hidden, output);
 
+   // Erstellen Sie eine Instanz des neuronalen Netzwerks
+   // Angenommen, Ihr Netzwerk hat 3 Eingabeknoten, 4 versteckte Knoten und 2 Ausgabeknoten
+   const nn2 = new NeuralNetwork(3, 4, 2);
+
+   // Erstellen Sie Ihre Trainingsdaten
+   const inputArray = [1, 0.5, -1.2]; // Beispiel für Eingabedaten
+   const targetArray = [0, 1];        // Beispiel für Zielwerte
+
+   // Trainieren Sie das Netzwerk mit Ihren Daten
+   nn2.feedforward(inputArray);
    // TODO: ADD Data to inputNodes (simple_NN.js)
    generateNodes(input, -2, 0xee6363, NN.inputNodes, inputNodes);
    generateNodes(hidden, 0, 0x58ea8e, NN.biasHidden.data, hiddenNodes);
