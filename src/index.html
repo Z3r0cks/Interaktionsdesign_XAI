@@ -5,6 +5,7 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Document</title>
+   <link rel="stylesheet" href="style.css">
    <!-- <script src="./script.js" defer></script> -->
    <!-- <script src="./simple_NN.js" defer></script> -->
    <script type="module" src="./main.js" defer></script>
@@ -20,36 +21,20 @@
       <input value="10" id="cameraZ" name="cameraZ" type="range" min="5" max="25" step="0.5">
    </div>
    <div class="input">
+      <label for="inputInput">hidden-Layer-Count</label>
+      <input id="hiddenLayerCount" for="inputInput" value="0" type="range" min="0" max="10"></input>
+      <!-- <input id="inputInput" value="1" name="inputInput" min="1" max="10" type="range"> -->
       <label for="inputInput">Input-layer</label>
       <input id="inputInput" value="1" name="inputInput" min="1" max="10" type="range">
-      <label for="inputHidden">Hidden-layer</label>
-      <input id="inputHidden" value="1" name="inputHidden" min="1" max="10" type="range">
+      <div id="hiddelLayerWrapper">
+      </div>
+      <!-- <label for="inputHidden">Hidden-layer</label> -->
+      <!-- <input id="inputHidden" value="1" name="inputHidden" min="1" max="10" type="range"> -->
       <label for="inputOutput">Output-layer</label>
       <input id="inputOutput" value="1" name="inputOutput" min="1" max="10" type="range">
       <label for="inputOutput">Verbindungen anzeigen</label>
       <input id="connBox" type="checkbox" checked>
    </div>
 </body>
-
-<style>
-   .cam,
-   .input {
-      color: white;
-      position: absolute;
-   }
-
-   .cam {
-      top: 45px;
-   }
-
-   .input {
-      top: 10px;
-   }
-
-   body {
-      margin: 0;
-      padding: 0;
-   }
-</style>
 
 </html>
