@@ -8,11 +8,11 @@ const cameraY = document.getElementById('cameraY');
 const cameraZ = document.getElementById('cameraZ');
 let neuralNodes = [];
 
+
 const inputInput = document.getElementById('inputInput');
-// const hiddenInput = document.getElementById('inputHidden');
 const outputInput = document.getElementById('inputOutput');
 const connBox = document.getElementById('connBox');
-const hiddenLayerCount = document.getElementById('hiddenLayerCount');
+const hiddenLayerCountElement = document.getElementById('hiddenLayerCount');
 
 const raycaster = new THREE.Raycaster();
 raycaster.params.Points.threshold = 0.1; // Adjust this value as needed
@@ -29,14 +29,13 @@ document.body.appendChild(renderer.domElement);
 
 const sphereDistance = 1.5;
 
-hiddenLayerCount.addEventListener('input', function () {
+hiddenLayerCountElement.addEventListener('input', function () {
    const wrapper = document.querySelector('#hiddelLayerWrapper');
    wrapper.innerHTML = '';
    for (let i = 0; i < this.value; i++) {
       wrapper.innerHTML += `
       <label for="inputHidden${i}">Hidden Layer ${i + 1}</label>
-      <input id="inputHidden${i}" type="range" min="1" max="10" value="1" />
-      `;
+      <input id="inputHidden${i}" class="inputHidden" type="range" min="1" max="10" value="1" />`;
    }
    generateNeuralNetwork(inputInput.value, getAllHiddenLayer(), outputInput.value);
 
@@ -48,6 +47,8 @@ hiddenLayerCount.addEventListener('input', function () {
       }
    });
 });
+
+hiddenLayerCountElement.dispatchEvent(new Event('input'));
 
 
 function getAllHiddenLayer() {
@@ -115,18 +116,35 @@ function animate() {
    if (haveNodesChanged()) {
       generateVisualNN(inputInput.value, getAllHiddenLayer(), outputInput.value);
       if (connBox.checked) {
-         // Verbinde Eingabeschicht mit der ersten versteckten Schicht
-         // console.log("inputNodes");
-         // console.log(inputNodes);
-         // console.log("hiddenNodes[0]");
-         // console.log(hiddenNodes);
-         connectNodes(inputNodes, hiddenNodes[0], 0xaaaaaa, "input");
-         // Verbinde alle versteckten Schichten miteinander
-         for (let i = 0; i < hiddenNodes.length - 1; i++) {
-            connectNodes(hiddenNodes[i], hiddenNodes[i + 1], 0xaaaaaa, "hidden");
+         let count = 0;
+         for (let i = -1; i < document.querySelectorAll(".inputHidden").length; i++) {
+            if (i == -1) {
+               for (let j = 0; j < inputNodes.length; j++) {
+                  for (let k = 0; k < document.getElementById("inputHidden0").value; k++) {
+                     drawLine(inputNodes[j], hiddenNodes[k], 0xaaaaaa);
+                  }
+               }
+            }
+            if (i !== document.querySelectorAll(".inputHidden").length - 1 && i !== -1) {
+               const leftLayer = parseInt(document.getElementById(`inputHidden${i}`).value);
+               const rightLayer = parseInt(document.getElementById(`inputHidden${i + 1}`).value);
+               for (let j = 0; j < leftLayer; j++) {
+                  for (let k = 0; k < rightLayer; k++) {
+                     drawLine(hiddenNodes[count], hiddenNodes[(count + leftLayer + k) - j], 0xaaaaaa);
+                  }
+                  count++;
+               }
+            } else if (i !== -1) {
+               console.log(`inputHidden${i}`);
+               const leftLayer = parseInt(document.getElementById(`inputHidden${i}`).value);
+               for (let j = 0; j < leftLayer; j++) {
+                  for (let k = 0; k < outputNodes.length; k++) {
+                     drawLine(hiddenNodes[count], outputNodes[k], 0xaaaaaa);
+                  }
+                  count++;
+               }
+            }
          }
-         // Verbinde letzte versteckte Schicht mit Ausgabeschicht
-         connectNodes(hiddenNodes[hiddenNodes.length - 1], outputNodes, 0xaaaaaa, "output");
       }
    }
    camera.position.x = cameraX.value;
@@ -137,42 +155,6 @@ function animate() {
 }
 
 animate();
-
-function connectNodes(nodeArray1, nodeArray2, color, sequenz) {
-   // console.log("node1");
-   // console.log(nodeArray1);
-   // console.log("node2");
-   // console.log(nodeArray2);
-   // console.log("________________________");
-   if (sequenz == "input") {
-      for (let i = 0; i < nodeArray1.length; i++) {
-         // for (let j = 0; j < nodeArray2.length; j++) {
-         drawLine(nodeArray1[i], nodeArray2, color);
-         // }
-      }
-      return;
-   }
-
-   if (sequenz == "hidden") {
-      for (let i = 0; i < nodeArray1.length; i++) {
-         for (let j = 0; j < array.length[i]; j++) {
-            for (let k = 0; k < array.length[i]; k++) {
-               drawLine(nodeArray1[i][j], nodeArray2[i][k], color);
-            }
-         }
-      }
-      return;
-   }
-
-   if (sequenz == "output") {
-      for (let i = 0; i < nodeArray1.length; i++) {
-         for (let j = 0; j < nodeArray2.length; j++) {
-            drawLine(nodeArray1[i], nodeArray2[j], color);
-         }
-      }
-      return;
-   }
-}
 
 // Funktion, um eine Linie zwischen zwei Knoten zu zeichnen
 function drawLine(startNode, endNode, color = 0xffffff) {
