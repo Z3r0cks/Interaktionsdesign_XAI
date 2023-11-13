@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import NeuralNetwork from './simple_NN.js';
+import { NeuronStates } from './NeuronStates.js';
+import { changeState, changeWeight } from './Neuron.js';
+
+import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 
 let NN;
 
@@ -8,47 +12,69 @@ const cameraY = document.getElementById('cameraY');
 const cameraZ = document.getElementById('cameraZ');
 let neuralNodes = [];
 
+let wheelListenerExists = false;
+let activeObject;
+let selectedObjects = [];
 
 const inputInput = document.getElementById('inputInput');
 const outputInput = document.getElementById('inputOutput');
 const connBox = document.getElementById('connBox');
 const hiddenLayerCountElement = document.getElementById('hiddenLayerCount');
 
-const raycaster = new THREE.Raycaster();
-raycaster.params.Points.threshold = 0.1; // Adjust this value as needed
-const mouse = new THREE.Vector2();
+let raycaster, mouse;
 
 let [inputNodes, hiddenNodes, outputNodes] = [];
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+const labelRenderer = new CSS2DRenderer();
 
 const sphereDistance = 1.5;
 
-hiddenLayerCountElement.addEventListener('input', function () {
-   const wrapper = document.querySelector('#hiddelLayerWrapper');
-   wrapper.innerHTML = '';
-   for (let i = 0; i < this.value; i++) {
-      wrapper.innerHTML += `
-      <label for="inputHidden${i}">Hidden Layer ${i + 1}</label>
-      <input id="inputHidden${i}" class="inputHidden" type="range" min="1" max="10" value="1" />`;
-   }
-   generateNeuralNetwork(inputInput.value, getAllHiddenLayer(), outputInput.value);
 
-   // Event Delegation für die Range-Inputs
-   document.querySelector('#hiddelLayerWrapper').addEventListener('input', function (event) {
-      // Überprüfen, ob das Event von einem Range-Input ausgelöst wurde
-      if (event.target.type === 'range') {
-         generateVisualNN(inputInput.value, getAllHiddenLayer(), outputInput.value);
+function init() {
+   renderer.setSize(window.innerWidth, window.innerHeight);
+   document.body.appendChild(renderer.domElement);
+   raycaster = new THREE.Raycaster();
+   raycaster.params.Points.threshold = 0.1; // Adjust this value as needed
+   mouse = new THREE.Vector2();
+
+   labelRenderer.setSize( window.innerWidth, window.innerHeight );
+   labelRenderer.domElement.style.position = 'absolute';
+   labelRenderer.domElement.style.top = '0px';
+   document.body.appendChild( labelRenderer.domElement );
+
+   hiddenLayerCountElement.addEventListener('input', function () {
+      const wrapper = document.querySelector('#hiddelLayerWrapper');
+      wrapper.innerHTML = '';
+      for (let i = 0; i < this.value; i++) {
+         wrapper.innerHTML += `
+         <label for="inputHidden${i}">Hidden Layer ${i + 1}</label>
+         <input id="inputHidden${i}" class="inputHidden" type="range" min="1" max="10" value="1" />`;
       }
+      generateNeuralNetwork(inputInput.value, getAllHiddenLayer(), outputInput.value);
+   
+      // Event Delegation für die Range-Inputs
+      document.querySelector('#hiddelLayerWrapper').addEventListener('input', function (event) {
+         // Überprüfen, ob das Event von einem Range-Input ausgelöst wurde
+         if (event.target.type === 'range') {
+            generateVisualNN(inputInput.value, getAllHiddenLayer(), outputInput.value);
+         }
+      });
    });
-});
 
-hiddenLayerCountElement.dispatchEvent(new Event('input'));
+   camera.position.z = 15;
+
+   labelRenderer.domElement.addEventListener('wheel', onWheel, {passive: true});
+   labelRenderer.domElement.addEventListener('click', onClick);
+   labelRenderer.domElement.addEventListener('mousemove', onMouseMove);
+   window.addEventListener('resize', onWindowResize, false);
+
+   hiddenLayerCountElement.dispatchEvent(new Event('input'));
+}
+init();
+
 
 
 function getAllHiddenLayer() {
@@ -89,6 +115,11 @@ function generateNodes(nodesCount, pos, color, data, nodeArray) {
       const cirles = new THREE.Mesh(circleGeometry, circleMaterial);
       cirles.neuronData = data[i];
       cirles.isNeuron = true;
+      cirles.neuronState = NeuronStates.FREE;
+      cirles.weight = 0.5;
+      cirles.layers.enable(1);
+      cirles.originColor = color;
+
       cirles.position.y = i * sphereDistance - (nodesCount - 1) * sphereDistance / 2;
       cirles.position.x = pos * 3;
       nodeArray.push(cirles);
@@ -147,11 +178,10 @@ function render() {
          }
       }
    }
-   camera.position.x = cameraX.value;
-   camera.position.y = cameraY.value;
-   camera.position.z = cameraZ.value;
+   
    requestAnimationFrame(render);
    renderer.render(scene, camera);
+   labelRenderer.render(scene, camera);
 }
 
 render();
@@ -171,6 +201,7 @@ function drawLine(startNode, endNode, color = 0xffffff) {
 
    // Erstellen einer Linie mit der definierten Geometrie und dem Material
    const line = new THREE.Line(geometry, material);
+   line.isLine = true;
    line.renderOrder = -1;
    // Hinzufügen der Linie zur Szene
    scene.add(line);
@@ -178,65 +209,6 @@ function drawLine(startNode, endNode, color = 0xffffff) {
    // Rückgabe der erstellten Linie, falls benötigt
    return line;
 }
-
-function createNeuralNodes(input, hidden, output) {
-   neuralNodes = [input, hidden, output];
-}
-
-
-function showNeuronTooltip(neuronData, position) {
-   const tooltip = document.getElementById('neuronTooltip') || createTooltip();
-   tooltip.innerHTML = `Neuron Data: ${JSON.stringify(neuronData)} `;
-   tooltip.style.display = 'block';
-   tooltip.style.left = `${position.x} px`;
-   tooltip.style.top = `${position.y} px`;
-}
-
-function hideNeuronTooltip() {
-   const tooltip = document.getElementById('neuronTooltip');
-   if (tooltip) {
-      tooltip.style.display = 'none';
-   }
-}
-
-function createTooltip() {
-   const tooltip = document.createElement('div');
-   tooltip.id = 'neuronTooltip';
-   tooltip.style.position = 'absolute';
-   tooltip.style.padding = '5px';
-   tooltip.style.background = 'rgba(0, 0, 0, 0.75)';
-   tooltip.style.color = 'white';
-   tooltip.style.borderRadius = '4px';
-   tooltip.style.pointerEvents = 'none'; // Damit der Tooltip nicht mit der Maus interferiert
-   document.body.appendChild(tooltip);
-   return tooltip;
-}
-
-
-function onMouseMove(event) {
-   // Update the mouse position
-   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-   // Raycasting for tooltips
-   raycaster.setFromCamera(mouse, camera);
-   const intersects = raycaster.intersectObjects(scene.children);
-
-   if (intersects.length > 0) {
-      const closestIntersectedObject = intersects[0].object;
-      if (closestIntersectedObject.isNeuron) {
-         showNeuronTooltip(closestIntersectedObject.neuronData, {
-            x: event.clientX,
-            y: event.clientY
-         });
-      } else {
-         hideNeuronTooltip();
-      }
-   } else {
-      hideNeuronTooltip();
-   }
-}
-window.addEventListener('mousemove', onMouseMove);
 
 connBox.addEventListener('change', () => {
    if (connBox.checked) {
@@ -250,3 +222,69 @@ connBox.addEventListener('change', () => {
    }
 });
 
+/*____________Interaction Events _________________________*/
+function onClick(event) {
+   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+   raycaster.setFromCamera(mouse, camera);
+   var intersects = raycaster.intersectObject(scene, true);
+
+   if (intersects.length > 0) {
+      if(intersects[0].object.neuronState != NeuronStates.SELECTED)selectedObjects.push(intersects[0].object);
+      changeState(intersects[0].object, NeuronStates.SELECTED);
+   } else {
+      for(let i = 0; i < selectedObjects.length; i++) {
+         changeState(selectedObjects[i], NeuronStates.FREE);
+      }
+      selectedObjects = [];
+   }
+}
+
+function onWindowResize() {
+   camera.aspect = window.innerWidth / window.innerHeight;
+   camera.updateProjectionMatrix();
+   renderer.setSize(window.innerWidth, window.innerHeight);
+   labelRenderer.setSize(window.innerWidth, window.innerHeight);
+   render();
+}
+
+function onMouseMove(event) {
+   // Update the mouse position
+   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+   // Raycasting for tooltips
+   raycaster.setFromCamera(mouse, camera);
+   var intersects = raycaster.intersectObject(scene, true);
+   raycaster.layers.set(1);
+  
+   if (intersects.length > 0) {
+      activeObject = intersects[0].object;
+      if(activeObject.neuronState != NeuronStates.SELECTED ) changeState(activeObject, NeuronStates.ACTIVE);
+      if(!wheelListenerExists) {
+         wheelListenerExists = true;
+      }
+    } else {
+      if(activeObject!=null) {
+         if(activeObject.neuronState != NeuronStates.SELECTED) changeState(activeObject, NeuronStates.FREE);
+         activeObject = null;
+         if(wheelListenerExists) {
+            wheelListenerExists = false;
+         }
+      }
+   }
+}
+
+function onWheel(event) {
+   if(selectedObjects.length >0) {
+      for(let i = 0; i < selectedObjects.length; i++) {
+         changeWeight(selectedObjects[i], 0.1*-Math.sign(event.deltaY) + selectedObjects[i].weight);
+      }
+   }
+   if(activeObject) {
+      if(activeObject.isNeuron && selectedObjects.length == 0) {
+         changeWeight(activeObject, 0.1*-Math.sign(event.deltaY) + activeObject.weight)
+      }
+   }
+}
+/*____________Interaction Events End_________________________*/
