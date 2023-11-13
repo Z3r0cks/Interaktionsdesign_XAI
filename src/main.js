@@ -112,7 +112,7 @@ function haveNodesChanged() {
    return inputInput.value != neuralNodes[0] || outputInput.value != neuralNodes[2];
 }
 
-function animate() {
+function render() {
    if (haveNodesChanged()) {
       generateVisualNN(inputInput.value, getAllHiddenLayer(), outputInput.value);
       if (connBox.checked) {
@@ -154,7 +154,7 @@ function animate() {
    renderer.render(scene, camera);
 }
 
-animate();
+render();
 
 // Funktion, um eine Linie zwischen zwei Knoten zu zeichnen
 function drawLine(startNode, endNode, color = 0xffffff) {
@@ -179,74 +179,74 @@ function drawLine(startNode, endNode, color = 0xffffff) {
    return line;
 }
 
-// function createNeuralNodes(input, hidden, output) {
-//    neuralNodes = [input, hidden, output];
-// }
+function createNeuralNodes(input, hidden, output) {
+   neuralNodes = [input, hidden, output];
+}
 
 
-// function showNeuronTooltip(neuronData, position) {
-//    const tooltip = document.getElementById('neuronTooltip') || createTooltip();
-//    tooltip.innerHTML = `Neuron Data: ${ JSON.stringify(neuronData) } `;
-//    tooltip.style.display = 'block';
-//    tooltip.style.left = `${ position.x } px`;
-//    tooltip.style.top = `${ position.y } px`;
-// }
+function showNeuronTooltip(neuronData, position) {
+   const tooltip = document.getElementById('neuronTooltip') || createTooltip();
+   tooltip.innerHTML = `Neuron Data: ${JSON.stringify(neuronData)} `;
+   tooltip.style.display = 'block';
+   tooltip.style.left = `${position.x} px`;
+   tooltip.style.top = `${position.y} px`;
+}
 
-// function hideNeuronTooltip() {
-//    const tooltip = document.getElementById('neuronTooltip');
-//    if (tooltip) {
-//       tooltip.style.display = 'none';
-//    }
-// }
+function hideNeuronTooltip() {
+   const tooltip = document.getElementById('neuronTooltip');
+   if (tooltip) {
+      tooltip.style.display = 'none';
+   }
+}
 
-// function createTooltip() {
-//    const tooltip = document.createElement('div');
-//    tooltip.id = 'neuronTooltip';
-//    tooltip.style.position = 'absolute';
-//    tooltip.style.padding = '5px';
-//    tooltip.style.background = 'rgba(0, 0, 0, 0.75)';
-//    tooltip.style.color = 'white';
-//    tooltip.style.borderRadius = '4px';
-//    tooltip.style.pointerEvents = 'none'; // Damit der Tooltip nicht mit der Maus interferiert
-//    document.body.appendChild(tooltip);
-//    return tooltip;
-// }
+function createTooltip() {
+   const tooltip = document.createElement('div');
+   tooltip.id = 'neuronTooltip';
+   tooltip.style.position = 'absolute';
+   tooltip.style.padding = '5px';
+   tooltip.style.background = 'rgba(0, 0, 0, 0.75)';
+   tooltip.style.color = 'white';
+   tooltip.style.borderRadius = '4px';
+   tooltip.style.pointerEvents = 'none'; // Damit der Tooltip nicht mit der Maus interferiert
+   document.body.appendChild(tooltip);
+   return tooltip;
+}
 
 
-// function onMouseMove(event) {
-//    // Update the mouse position
-//    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-//    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+function onMouseMove(event) {
+   // Update the mouse position
+   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-//    // Raycasting for tooltips
-//    raycaster.setFromCamera(mouse, camera);
-//    const intersects = raycaster.intersectObjects(scene.children);
+   // Raycasting for tooltips
+   raycaster.setFromCamera(mouse, camera);
+   const intersects = raycaster.intersectObjects(scene.children);
 
-//    if (intersects.length > 0) {
-//       const closestIntersectedObject = intersects[0].object;
-//       if (closestIntersectedObject.isNeuron) {
-//          showNeuronTooltip(closestIntersectedObject.neuronData, {
-//             x: event.clientX,
-//             y: event.clientY
-//          });
-//       } else {
-//          hideNeuronTooltip();
-//       }
-//    } else {
-//       hideNeuronTooltip();
-//    }
-// }
-// window.addEventListener('mousemove', onMouseMove);
+   if (intersects.length > 0) {
+      const closestIntersectedObject = intersects[0].object;
+      if (closestIntersectedObject.isNeuron) {
+         showNeuronTooltip(closestIntersectedObject.neuronData, {
+            x: event.clientX,
+            y: event.clientY
+         });
+      } else {
+         hideNeuronTooltip();
+      }
+   } else {
+      hideNeuronTooltip();
+   }
+}
+window.addEventListener('mousemove', onMouseMove);
 
-// connBox.addEventListener('change', () => {
-//    if (connBox.checked) {
-//       connectNodes(inputNodes, hiddenNodes, 0xaaaaaa);
-//       connectNodes(hiddenNodes, outputNodes, 0xaaaaaa);
-//    } else {
-//       scene.clear();
-//       generateNodes(inputInput.value, -2, 0xee6363, NN.inputNodes, inputNodes);
-//       generateNodes(hiddenInput.value, 0, 0x58ea8e, NN.hiddenNodes, hiddenNodes);
-//       generateNodes(outputInput.value, 2, 0x4f6357, NN.outputNodes, outputNodes);
-//    }
-// });
+connBox.addEventListener('change', () => {
+   if (connBox.checked) {
+      connectNodes(inputNodes, hiddenNodes, 0xaaaaaa);
+      connectNodes(hiddenNodes, outputNodes, 0xaaaaaa);
+   } else {
+      scene.clear();
+      generateNodes(inputInput.value, -2, 0xee6363, NN.inputNodes, inputNodes);
+      generateNodes(hiddenInput.value, 0, 0x58ea8e, NN.hiddenNodes, hiddenNodes);
+      generateNodes(outputInput.value, 2, 0x4f6357, NN.outputNodes, outputNodes);
+   }
+});
 
