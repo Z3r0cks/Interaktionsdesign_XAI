@@ -150,7 +150,7 @@ function render() {
    camera.position.x = cameraX.value;
    camera.position.y = cameraY.value;
    camera.position.z = cameraZ.value;
-   requestAnimationFrame(animate);
+   requestAnimationFrame(render);
    renderer.render(scene, camera);
 }
 
