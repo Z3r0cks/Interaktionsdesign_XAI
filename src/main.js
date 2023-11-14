@@ -40,10 +40,10 @@ function init() {
    raycaster.params.Points.threshold = 0.1; // Adjust this value as needed
    mouse = new THREE.Vector2();
 
-   labelRenderer.setSize( window.innerWidth, window.innerHeight );
+   labelRenderer.setSize(window.innerWidth, window.innerHeight);
    labelRenderer.domElement.style.position = 'absolute';
    labelRenderer.domElement.style.top = '0px';
-   document.body.appendChild( labelRenderer.domElement );
+   document.body.appendChild(labelRenderer.domElement);
 
    hiddenLayerCountElement.addEventListener('input', function () {
       const wrapper = document.querySelector('#hiddelLayerWrapper');
@@ -54,19 +54,20 @@ function init() {
          <input id="inputHidden${i}" class="inputHidden" type="range" min="1" max="10" value="1" />`;
       }
       generateNeuralNetwork(inputInput.value, getAllHiddenLayer(), outputInput.value);
-   
+
       // Event Delegation für die Range-Inputs
       document.querySelector('#hiddelLayerWrapper').addEventListener('input', function (event) {
          // Überprüfen, ob das Event von einem Range-Input ausgelöst wurde
          if (event.target.type === 'range') {
             generateVisualNN(inputInput.value, getAllHiddenLayer(), outputInput.value);
+            setConnection();
          }
       });
    });
 
    camera.position.z = 15;
 
-   labelRenderer.domElement.addEventListener('wheel', onWheel, {passive: true});
+   labelRenderer.domElement.addEventListener('wheel', onWheel, { passive: true });
    labelRenderer.domElement.addEventListener('click', onClick);
    labelRenderer.domElement.addEventListener('mousemove', onMouseMove);
    window.addEventListener('resize', onWindowResize, false);
@@ -109,21 +110,23 @@ function generateVisualNN(input, hidden, output) {
 };
 
 function generateNodes(nodesCount, pos, color, data, nodeArray) {
-   for (let i = 0; i < nodesCount; i++) {
-      const circleGeometry = new THREE.CircleGeometry(0.5, 32);
-      const circleMaterial = new THREE.MeshBasicMaterial({ color: color });
-      const cirles = new THREE.Mesh(circleGeometry, circleMaterial);
-      cirles.neuronData = data[i];
-      cirles.isNeuron = true;
-      cirles.neuronState = NeuronStates.FREE;
-      cirles.weight = 0.5;
-      cirles.layers.enable(1);
-      cirles.originColor = color;
+   const circleGeometry = new THREE.CircleGeometry(0.5, 32);
+   const circleMaterial = new THREE.MeshBasicMaterial({ color: color });
+   const halfDistance = (nodesCount - 1) * sphereDistance / 2;
+   const xPosition = pos * 3;
 
-      cirles.position.y = i * sphereDistance - (nodesCount - 1) * sphereDistance / 2;
-      cirles.position.x = pos * 3;
-      nodeArray.push(cirles);
-      scene.add(cirles);
+   for (let i = 0; i < nodesCount; i++) {
+      const circle = new THREE.Mesh(circleGeometry, circleMaterial);
+      circle.neuronData = data[i];
+      circle.isNeuron = true;
+      circle.neuronState = NeuronStates.FREE;
+      circle.weight = 0.5;
+      circle.layers.enable(1);
+      circle.originColor = color;
+
+      circle.position.set(xPosition, i * sphereDistance - halfDistance, 0);
+      nodeArray.push(circle);
+      scene.add(circle);
    }
 }
 
@@ -143,42 +146,47 @@ function haveNodesChanged() {
    return inputInput.value != neuralNodes[0] || outputInput.value != neuralNodes[2];
 }
 
-function render() {
-   if (haveNodesChanged()) {
-      generateVisualNN(inputInput.value, getAllHiddenLayer(), outputInput.value);
-      if (connBox.checked) {
-         let count = 0;
-         for (let i = -1; i < document.querySelectorAll(".inputHidden").length; i++) {
-            if (i == -1) {
-               for (let j = 0; j < inputNodes.length; j++) {
-                  for (let k = 0; k < document.getElementById("inputHidden0").value; k++) {
-                     drawLine(inputNodes[j], hiddenNodes[k], 0xaaaaaa);
-                  }
-               }
-            }
-            if (i !== document.querySelectorAll(".inputHidden").length - 1 && i !== -1) {
-               const leftLayer = parseInt(document.getElementById(`inputHidden${i}`).value);
-               const rightLayer = parseInt(document.getElementById(`inputHidden${i + 1}`).value);
-               for (let j = 0; j < leftLayer; j++) {
-                  for (let k = 0; k < rightLayer; k++) {
-                     drawLine(hiddenNodes[count], hiddenNodes[(count + leftLayer + k) - j], 0xaaaaaa);
-                  }
-                  count++;
-               }
-            } else if (i !== -1) {
-               console.log(`inputHidden${i}`);
-               const leftLayer = parseInt(document.getElementById(`inputHidden${i}`).value);
-               for (let j = 0; j < leftLayer; j++) {
-                  for (let k = 0; k < outputNodes.length; k++) {
-                     drawLine(hiddenNodes[count], outputNodes[k], 0xaaaaaa);
-                  }
-                  count++;
-               }
-            }
-         }
+function setConnection() {
+   if (!connBox.checked) return;
+   const hiddenInputs = document.querySelectorAll(".inputHidden");
+   let count = 0;
+
+   // Verbindungen von Eingabe- zu versteckten Knoten
+   for (let j = 0; j < inputNodes.length; j++) {
+      for (let k = 0; k < parseInt(hiddenInputs[0].value); k++) {
+         drawLine(inputNodes[j], hiddenNodes[k], 0xaaaaaa);
       }
    }
-   
+
+   // Verbindungen zwischen versteckten Knotenschichten
+   for (let i = 0; i < hiddenInputs.length - 1; i++) {
+      const leftLayer = parseInt(hiddenInputs[i].value);
+      const rightLayer = parseInt(hiddenInputs[i + 1].value);
+
+      for (let j = 0; j < leftLayer; j++) {
+         for (let k = 0; k < rightLayer; k++) {
+            drawLine(hiddenNodes[count], hiddenNodes[count + leftLayer + k - j], 0xaaaaaa);
+         }
+         count++;
+      }
+   }
+
+   // Verbindungen von versteckten Knoten zu Ausgabeknoten
+   const lastHiddenLayer = parseInt(hiddenInputs[hiddenInputs.length - 1].value);
+   for (let j = 0; j < lastHiddenLayer; j++) {
+      for (let k = 0; k < outputNodes.length; k++) {
+         drawLine(hiddenNodes[count], outputNodes[k], 0xaaaaaa);
+      }
+      count++;
+   }
+}
+
+
+function render() {
+   if (haveNodesChanged()) {
+      generateVisualNN(inputInput.value, getAllHiddenLayer(), outputInput.value); setConnection();
+   }
+
    requestAnimationFrame(render);
    renderer.render(scene, camera);
    labelRenderer.render(scene, camera);
@@ -195,17 +203,14 @@ function drawLine(startNode, endNode, color = 0xffffff) {
 
    // Erstellen einer Liniengeometrie aus den Punkten
    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-   // Erstellen eines Materials für die Linie
    const material = new THREE.LineBasicMaterial({ color: color });
 
    // Erstellen einer Linie mit der definierten Geometrie und dem Material
    const line = new THREE.Line(geometry, material);
    line.isLine = true;
    line.renderOrder = -1;
-   // Hinzufügen der Linie zur Szene
-   scene.add(line);
 
+   scene.add(line);
    // Rückgabe der erstellten Linie, falls benötigt
    return line;
 }
@@ -230,10 +235,10 @@ function onClick(event) {
    var intersects = raycaster.intersectObject(scene, true);
 
    if (intersects.length > 0) {
-      if(intersects[0].object.neuronState != NeuronStates.SELECTED)selectedObjects.push(intersects[0].object);
+      if (intersects[0].object.neuronState != NeuronStates.SELECTED) selectedObjects.push(intersects[0].object);
       changeState(intersects[0].object, NeuronStates.SELECTED);
    } else {
-      for(let i = 0; i < selectedObjects.length; i++) {
+      for (let i = 0; i < selectedObjects.length; i++) {
          changeState(selectedObjects[i], NeuronStates.FREE);
       }
       selectedObjects = [];
@@ -257,18 +262,18 @@ function onMouseMove(event) {
    raycaster.setFromCamera(mouse, camera);
    var intersects = raycaster.intersectObject(scene, true);
    raycaster.layers.set(1);
-  
+
    if (intersects.length > 0) {
       activeObject = intersects[0].object;
-      if(activeObject.neuronState != NeuronStates.SELECTED ) changeState(activeObject, NeuronStates.ACTIVE);
-      if(!wheelListenerExists) {
+      if (activeObject.neuronState != NeuronStates.SELECTED) changeState(activeObject, NeuronStates.ACTIVE);
+      if (!wheelListenerExists) {
          wheelListenerExists = true;
       }
-    } else {
-      if(activeObject!=null) {
-         if(activeObject.neuronState != NeuronStates.SELECTED) changeState(activeObject, NeuronStates.FREE);
+   } else {
+      if (activeObject != null) {
+         if (activeObject.neuronState != NeuronStates.SELECTED) changeState(activeObject, NeuronStates.FREE);
          activeObject = null;
-         if(wheelListenerExists) {
+         if (wheelListenerExists) {
             wheelListenerExists = false;
          }
       }
@@ -276,14 +281,14 @@ function onMouseMove(event) {
 }
 
 function onWheel(event) {
-   if(selectedObjects.length >0) {
-      for(let i = 0; i < selectedObjects.length; i++) {
-         changeWeight(selectedObjects[i], 0.1*-Math.sign(event.deltaY) + selectedObjects[i].weight);
+   if (selectedObjects.length > 0) {
+      for (let i = 0; i < selectedObjects.length; i++) {
+         changeWeight(selectedObjects[i], 0.1 * -Math.sign(event.deltaY) + selectedObjects[i].weight);
       }
    }
-   if(activeObject) {
-      if(activeObject.isNeuron && selectedObjects.length == 0) {
-         changeWeight(activeObject, 0.1*-Math.sign(event.deltaY) + activeObject.weight)
+   if (activeObject) {
+      if (activeObject.isNeuron && selectedObjects.length == 0) {
+         changeWeight(activeObject, 0.1 * -Math.sign(event.deltaY) + activeObject.weight)
       }
    }
 }
