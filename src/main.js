@@ -260,11 +260,12 @@ function onMouseMove(event) {
 
    // Raycasting for tooltips
    raycaster.setFromCamera(mouse, camera);
-   var intersects = raycaster.intersectObject(scene, true);
+   const intersects = raycaster.intersectObject(scene, true);
    raycaster.layers.set(1);
 
    if (intersects.length > 0) {
       activeObject = intersects[0].object;
+      console.log(intersects[0].object);
       if (activeObject.neuronState != NeuronStates.SELECTED) changeState(activeObject, NeuronStates.ACTIVE);
       if (!wheelListenerExists) {
          wheelListenerExists = true;
