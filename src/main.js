@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import NeuralNetwork from './simple_NN.js';
 import { NeuronStates } from './NeuronStates.js';
 import { changeState, changeWeight } from './Neuron.js';
+import { CameraController } from './CameraController.js';
 
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 
@@ -21,7 +22,7 @@ const outputInput = document.getElementById('inputOutput');
 const connBox = document.getElementById('connBox');
 const hiddenLayerCountElement = document.getElementById('hiddenLayerCount');
 
-let raycaster, mouse;
+let raycaster, mouse, cameraController;
 
 let [inputNodes, hiddenNodes, outputNodes] = [];
 
@@ -65,7 +66,7 @@ function init() {
       });
    });
 
-   camera.position.z = 15;
+   cameraController = new CameraController(camera);
 
    labelRenderer.domElement.addEventListener('wheel', onWheel, { passive: true });
    labelRenderer.domElement.addEventListener('click', onClick);
@@ -105,8 +106,8 @@ function generateVisualNN(input, hidden, output) {
    }
    generateNodes(output, i, 0x4f6357, NN.biasOutput.data, outputNodes);
    neuralNodes = [input, hidden, output];
-   const cameraZoom = Math.max(input, hidden, output) * sphereDistance / 4;
-   cameraZ.value = cameraZoom < 1 ? 8 : 8 * cameraZoom;
+   cameraController.adjustPosition(neuralNodes, i, sphereDistance);
+   
 };
 
 function generateNodes(nodesCount, pos, color, data, nodeArray) {
@@ -265,7 +266,6 @@ function onMouseMove(event) {
 
    if (intersects.length > 0) {
       activeObject = intersects[0].object;
-      console.log(intersects[0].object);
       if (activeObject.neuronState != NeuronStates.SELECTED) changeState(activeObject, NeuronStates.ACTIVE);
       if (!wheelListenerExists) {
          wheelListenerExists = true;
