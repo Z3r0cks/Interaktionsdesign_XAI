@@ -7,8 +7,8 @@ import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 
 let NN;
 
-const cameraX = document.getElementById('cameraX');
-const cameraY = document.getElementById('cameraY');
+// const cameraX = document.getElementById('cameraX');
+// const cameraY = document.getElementById('cameraY');
 const cameraZ = document.getElementById('cameraZ');
 let neuralNodes = [];
 
@@ -110,12 +110,12 @@ function generateVisualNN(input, hidden, output) {
 };
 
 function generateNodes(nodesCount, pos, color, data, nodeArray) {
-   const circleGeometry = new THREE.CircleGeometry(0.5, 32);
-   const circleMaterial = new THREE.MeshBasicMaterial({ color: color });
    const halfDistance = (nodesCount - 1) * sphereDistance / 2;
    const xPosition = pos * 3;
 
    for (let i = 0; i < nodesCount; i++) {
+      const circleGeometry = new THREE.CircleGeometry(0.5, 32);
+      const circleMaterial = new THREE.MeshBasicMaterial({ color: color });
       const circle = new THREE.Mesh(circleGeometry, circleMaterial);
       circle.neuronData = data[i];
       circle.isNeuron = true;
