@@ -36,8 +36,10 @@
     - not: visualisation and interaction with visualisation itselt --> no reason why this should be scientific
     - more like: specific interaction with visualisation:
         - is using the mousewheel and directly clicking on the weights more intuitive than using sliders on the side?
+- Tested TensorflowJS to use NN-Logic
 ### L
 - Including interaction functionalitys in shared Project
 - Bug fixing raycaster for interaction
 - Including layers so that the raycaster ignores the connections
 - created protocol and created protocols for weeks aferwards
+- added CameraController (fixed logic from P)
